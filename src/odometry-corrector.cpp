@@ -40,7 +40,7 @@ int main(int argc, char* argv[], char *env[]) {
 
 	OdometryCorrector::proc_configuration	pconf;			// process configuration
 	OdometryCorrector::proc_option_reader	popt(&pconf);	// process option reader
-	gnd::cui								pcui;			// cui
+	gnd::cui_reader							pcui;			// cui
 
 
 
@@ -243,7 +243,7 @@ int main(int argc, char* argv[], char *env[]) {
 
 
 		{ // ---> cui setting
-			pcui.set_command( cui_cmd, sizeof(cui_cmd) / sizeof(cui_cmd[0]) );
+			pcui.set_command( OdometryCorrector::cui_cmd, sizeof(OdometryCorrector::cui_cmd) / sizeof(OdometryCorrector::cui_cmd[0]) );
 		} // <--- cui setting
 
 
@@ -273,7 +273,7 @@ int main(int argc, char* argv[], char *env[]) {
 						case '\0':
 						case 'h': pcui.show(stderr, "   "); break;
 						// show status mode
-						case 's': timer_show.begin(CLOCK_REALTIME, CuiShowCycle, CuiShowCycle);
+						case 's': timer_show.begin(CLOCK_REALTIME, OdometryCorrector::CuiShowCycle, OdometryCorrector::CuiShowCycle);
 						}
 					} // <--- cui mode
 					// flush

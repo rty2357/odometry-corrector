@@ -1,0 +1,32 @@
+README: odometry-corrector
+
+基本的な使用方法について記述
+
+コンパイル
+・依存ライブラリ
+  ssm
+  ypspur
+
+・以下のコマンドでディレクトリReleaseに実行ファイルを生成
+  $ make
+
+実行
+コンフィグレーションファイルにてパラメータを指定します
+
+・コンフィグレーションファイルの生成
+  $ odometry-corrector -G
+  ※ コンフィグレーションファイル"odometer.conf"が生成されます
+     各パラメータはデフォルトの値になっています
+ 
+・実行
+ $ odometry-corrector -g <configuration-file>
+
+ コンフィグレーションファイルに以下のパラメータを指定
+ ・"map"の項目にオドメトリの誤差の地図(map-maker-offlineの出力ファイル)を指定
+ ・"ssm-odometry-error-id"の項目に正の値を入力(odometerと共通の値)
+ ・"ssm-odometry-error-name"の項目にnullにしない(odometerと共通の値)
+ ※ ypspur-coordinatorが事前に起動している場合は、ypspur-coordinatorよりキネマティクスパラメータを取得します
+ 
+・終了
+  ctrl+c (シグナル"SIGINT"の送信)
+ 

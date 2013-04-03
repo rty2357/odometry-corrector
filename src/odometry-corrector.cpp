@@ -24,11 +24,11 @@
 #include "gnd-shutoff.hpp"
 
 int main(int argc, char* argv[], char *env[]) {
-	SSMApi<PWSMotor>					ssm_wenc;		// shared wheel encoder data (read)
-	SSMApi<Spur_Odometry>				ssm_pos;		// shared position data (read)
-	SSMApi_OdometryErr					ssm_odmerr;		// shared odometry error data (write)
+	SSMApi<PWSMotor>					ssm_wenc;			// shared wheel encoder data (read)
+	SSMApi<Spur_Odometry>				ssm_pos;			// shared position data (read)
+	SSMApi_OdometryErr					ssm_odmerr;			// shared odometry error data (write)
 
-	gnd::odometry::cmap					map;			// road surface environment map
+	gnd::odometry::cmap					map;				// road surface environment map
 
 	struct {
 		double radius_r;
@@ -36,7 +36,7 @@ int main(int argc, char* argv[], char *env[]) {
 		double tread;
 		double count_rev;
 		double gear;
-	} odm_knm;											// odometry kinematics parameter
+	} odm_knm;												// odometry kinematics parameter
 
 	OdometryCorrector::proc_configuration	pconf;			// process configuration
 	OdometryCorrector::proc_option_reader	popt(&pconf);	// process option reader
@@ -224,26 +224,30 @@ int main(int argc, char* argv[], char *env[]) {
 			}
 		} // <--- open position ssm-data
 
-
-
-
 	} // <--- initialize
 
 
 
+
+
 	if( !::is_proc_shutoff() ){ // ---> operation
+		double err_ratio_x = 0, err_ratio_y = 0, err_ratio_theta = 0;
+
 		gnd::Time::IntervalTimer timer_show;	// clock
 		double show_running = 0;
+		int nline_show = 0;
 		struct {
 			double x;
 			double y;
 			double theta;
 		} show_err;
 
+		show_err.x = show_err.y = show_err.theta = 0;
 
 
 		{ // ---> cui setting
 			pcui.set_command( OdometryCorrector::cui_cmd, sizeof(OdometryCorrector::cui_cmd) / sizeof(OdometryCorrector::cui_cmd[0]) );
+			timer_show.begin( CLOCK_REALTIME, OdometryCorrector::CuiShowCycle, -OdometryCorrector::CuiShowCycle );
 		} // <--- cui setting
 
 
@@ -288,12 +292,16 @@ int main(int argc, char* argv[], char *env[]) {
 			// ---> show status
 			if( timer_show.clock() > 0) {
 				// clear display
-				::fprintf(stderr, "\x1b[0;0H\x1b[2J");
+				// back cursor
+				if( nline_show ) {
+					::fprintf(stderr, "\x1b[%02dA", nline_show);
+					nline_show = 0;
+				}
 				{ // ---> show status
-					::fprintf(stderr, "-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", OdometryCorrector::proc_name);
-					::fprintf(stdout, " running distance  : %lf\n", show_running );
-					::fprintf(stdout, "    odometry error : %lf %lf %lf\n",
-							show_err.x, show_err.y, show_err.theta);
+					nline_show++; ::fprintf(stderr, "\x1b[K-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", OdometryCorrector::proc_name);
+					nline_show++; ::fprintf(stdout, "\x1b[K running distance  : %lf\n", show_running );
+					nline_show++; ::fprintf(stdout, "\x1b[K    odometry error : %lf %lf %lf\n", show_err.x, show_err.y, gnd_ang2deg(show_err.theta));
+					nline_show++; ::fprintf(stdout, "\x1b[K       error ratio : %lf %lf %lf\n", err_ratio_x, err_ratio_y, gnd_ang2deg(err_ratio_theta) );
 				} // <--- show status
 			} // <--- show status
 
@@ -308,7 +316,6 @@ int main(int argc, char* argv[], char *env[]) {
 
 				double r = 0;									// running distance
 
-				double err_ratio_x, err_ratio_y, err_ratio_theta;
 				// 0. get current position estimation
 				if( !ssm_pos.readLast() )	continue;
 
@@ -321,6 +328,7 @@ int main(int argc, char* argv[], char *env[]) {
 					lrq = (2.0 * M_PI * ( (double) ssm_wenc.data.counter1 ) ) / ( odm_knm.count_rev * odm_knm.gear );
 
 					r = ( ( rrq * odm_knm.radius_r ) + ( lrq * odm_knm.radius_l ) ) / 2;
+					show_running = r;
 				} // <--- 1. compute running distance
 
 
@@ -329,10 +337,15 @@ int main(int argc, char* argv[], char *env[]) {
 				} // <--- 2. get odometry error estimation with reference to road surface environmental map and current position estimation
 
 
-				{ // ---> 3. output odometry error estimation
+				if( r > 0 ){ // ---> 3. output odometry error estimation
 					ssm_odmerr.data.dx = err_ratio_x * r;
+					show_err.x = ssm_odmerr.data.dx;
+
 					ssm_odmerr.data.dy = err_ratio_y * r;
+					show_err.y = ssm_odmerr.data.dy;
+
 					ssm_odmerr.data.dtheta = err_ratio_theta * r;
+					show_err.theta = ssm_odmerr.data.dtheta;
 				} // <--- 3. output odometry error estimation
 
 				ssm_odmerr.write( ssm_pos.time );

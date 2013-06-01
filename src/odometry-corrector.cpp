@@ -46,7 +46,7 @@ int main(int argc, char* argv[], char *env[]) {
 
 	{ // ---> initialize
 		int ret;
-		size_t phase = 1;
+		uint32_t phase = 1;
 
 
 		// ---> read process options

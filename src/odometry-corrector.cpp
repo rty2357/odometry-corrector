@@ -233,7 +233,7 @@ int main(int argc, char* argv[], char *env[]) {
 	if( !::is_proc_shutoff() ){ // ---> operation
 		double err_ratio_x = 0, err_ratio_y = 0, err_ratio_theta = 0;
 
-		gnd::Time::IntervalTimer timer_show;	// clock
+		gnd::timer::interval_timer timer_show;	// clock
 		double show_running = 0;
 		int nline_show = 0;
 		struct {
@@ -277,7 +277,7 @@ int main(int argc, char* argv[], char *env[]) {
 						case '\0':
 						case 'h': pcui.show(stderr, "   "); break;
 						// show status mode
-						case 's': timer_show.begin(CLOCK_REALTIME, OdometryCorrector::CuiShowCycle, OdometryCorrector::CuiShowCycle);
+						case 's': timer_show.begin(CLOCK_REALTIME, OdometryCorrector::CuiShowCycle, OdometryCorrector::CuiShowCycle); break;
 						}
 					} // <--- cui mode
 					// flush

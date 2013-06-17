@@ -36,7 +36,7 @@ all:rebuild
 
 
 build:$(RELEASE_DIR) $(OBJS)
-	$(GCC) -o"$(RELEASE_DIR)$(TARGET)" $(patsubst %,$(RELEASE_DIR)%,$(OBJS)) $(LDFLAGS)
+	$(GCC) -o $(RELEASE_DIR)$(TARGET) $(patsubst %,$(RELEASE_DIR)%,$(OBJS)) $(LDFLAGS)
 	@echo "#!$(SHELL_INTRP)" > $(LAUNCHER)
 	@echo "$(LAUNCH_CMD)" >> $(LAUNCHER)
 	@chmod +x $(LAUNCHER)

@@ -19,7 +19,7 @@
 #include "odometry-corrector-conf.hpp"
 #include "odometry-corrector-cui.hpp"
 
-#include "gnd-time.hpp"
+#include "gnd-timer.hpp"
 #include "gnd-odometry-correction.hpp"
 #include "gnd-shutoff.hpp"
 
@@ -240,9 +240,11 @@ int main(int argc, char* argv[], char *env[]) {
 			double x;
 			double y;
 			double theta;
-		} show_err;
+		} show_err, show_sum_err;
+		double sum_r;
 
 		show_err.x = show_err.y = show_err.theta = 0;
+		show_sum_err.x = show_sum_err.y = show_sum_err.theta = 0;
 
 
 		{ // ---> cui setting
@@ -301,6 +303,7 @@ int main(int argc, char* argv[], char *env[]) {
 					nline_show++; ::fprintf(stderr, "\x1b[K-------------------- \x1b[1m\x1b[36m%s\x1b[39m\x1b[0m --------------------\n", OdometryCorrector::proc_name);
 					nline_show++; ::fprintf(stdout, "\x1b[K running distance  : %lf\n", show_running );
 					nline_show++; ::fprintf(stdout, "\x1b[K    odometry error : %lf %lf %lf\n", show_err.x, show_err.y, gnd_ang2deg(show_err.theta));
+					nline_show++; ::fprintf(stdout, "\x1b[K         sum error : %lf %lf %lf, %lf\n", show_sum_err.x, show_sum_err.y, gnd_ang2deg(show_sum_err.theta), sum_r);
 					nline_show++; ::fprintf(stdout, "\x1b[K       error ratio : %lf %lf %lf\n", err_ratio_x, err_ratio_y, gnd_ang2deg(err_ratio_theta) );
 				} // <--- show status
 			} // <--- show status
@@ -321,14 +324,24 @@ int main(int argc, char* argv[], char *env[]) {
 
 
 				{ // ---> 1. compute running distance
+					int cnt1 = (pconf.k_lwheel_crot.value ? -1 : 1) * ssm_wenc.data.counter1;
+					int cnt2 = (pconf.k_rwheel_crot.value ? -1 : 1) * ssm_wenc.data.counter2;
+
 					double rrq;	// right wheel rotation quantity
 					double lrq;	// left wheel rotation quantity
 
-					rrq = (2.0 * M_PI * ( (double) ssm_wenc.data.counter2 ) ) / ( odm_knm.count_rev * odm_knm.gear );
-					lrq = (2.0 * M_PI * ( (double) ssm_wenc.data.counter1 ) ) / ( odm_knm.count_rev * odm_knm.gear );
+					if( pconf.k_swap_rwmotor.value ){
+						int swap = cnt1;
+						cnt1 = cnt2;
+						cnt2 = swap;
+					}
+
+					rrq = (2.0 * M_PI * ( (double) cnt2 ) ) / ( odm_knm.count_rev * odm_knm.gear );
+					lrq = (2.0 * M_PI * ( (double) cnt1 ) ) / ( odm_knm.count_rev * odm_knm.gear );
 
 					r = ( ( rrq * odm_knm.radius_r ) + ( lrq * odm_knm.radius_l ) ) / 2;
 					show_running = r;
+					sum_r +=r;
 				} // <--- 1. compute running distance
 
 
@@ -340,12 +353,15 @@ int main(int argc, char* argv[], char *env[]) {
 				if( r > 0 ){ // ---> 3. output odometry error estimation
 					ssm_odmerr.data.dx = err_ratio_x * r;
 					show_err.x = ssm_odmerr.data.dx;
+					show_sum_err.x -= ssm_odmerr.data.dx;
 
 					ssm_odmerr.data.dy = err_ratio_y * r;
 					show_err.y = ssm_odmerr.data.dy;
+					show_sum_err.y -= ssm_odmerr.data.dy;
 
 					ssm_odmerr.data.dtheta = err_ratio_theta * r;
 					show_err.theta = ssm_odmerr.data.dtheta;
+					show_sum_err.theta -= ssm_odmerr.data.dtheta;
 				} // <--- 3. output odometry error estimation
 
 				ssm_odmerr.write( ssm_pos.time );

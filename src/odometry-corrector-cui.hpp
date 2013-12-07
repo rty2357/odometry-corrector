@@ -23,3 +23,4 @@ namespace OdometryCorrector {
 	static const double CuiShowCycle = gnd_sec2time(1.0);
 }
 #endif /*  ODOMETRY_CORRECTOR_CUI_HPP_ */
+

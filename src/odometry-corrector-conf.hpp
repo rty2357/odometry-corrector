@@ -71,6 +71,31 @@ namespace OdometryCorrector {
 			"odometry kinematics parameter: left wheel radius"
 	};
 
+	/*
+	 * @brief right wheel radius parameter
+	 */
+	static const gnd::conf::parameter<bool> ConfIni_KRightWheelCRot = {
+			"right-wheel-counter-rot",
+			false
+	};
+
+	/*
+	 * @brief left wheel radius parameter
+	 */
+	static const gnd::conf::parameter<bool> ConfIni_KLeftWheelCRot = {
+			"left-wheel-counter-rot",
+			false
+	};
+
+	/*
+	 * @brief swap right left motor
+	 */
+	static const gnd::conf::parameter<bool> ConfIni_KSwapRightLehtMotor = {
+			"swap-right-left-motor",
+			false
+	};
+
+
 	// odometry kinematics parameter: tread
 	static const gnd::conf::parameter<double> ConfIni_Tread = {
 			"tread",
@@ -152,6 +177,9 @@ namespace OdometryCorrector {
 			gnd::conf::parameter_array<char, 512>	map;		///< @brief road surface map
 			gnd::conf::parameter<double>			radius_r;	///< @brief odometry kinematics parameter : right wheel radius
 			gnd::conf::parameter<double>			radius_l;	///< @brief odometry kinematics parameter : left wheel radius
+			gnd::conf::parameter<bool>				k_rwheel_crot;
+			gnd::conf::parameter<bool>				k_lwheel_crot;
+			gnd::conf::parameter<bool>				k_swap_rwmotor;
 			gnd::conf::parameter<double>			tread;		///< @brief odometry kinematics parameter : tread
 			gnd::conf::parameter<double>			count_rev;	///< @brief odometry parameter : encoder resolution ( count per revolution )
 			gnd::conf::parameter<double>			gear;		///< @brief odometry parameter : gear ratio
@@ -190,6 +218,9 @@ namespace OdometryCorrector {
 			::memcpy(&conf->map,		&ConfIni_Map,					sizeof(ConfIni_Map));
 			::memcpy(&conf->radius_r,	&ConfIni_WheelRadiusR,			sizeof(ConfIni_WheelRadiusR));
 			::memcpy(&conf->radius_l,	&ConfIni_WheelRadiusL,			sizeof(ConfIni_WheelRadiusL));
+			::memcpy(&conf->k_lwheel_crot,				&ConfIni_KLeftWheelCRot,					sizeof(ConfIni_KLeftWheelCRot));
+			::memcpy(&conf->k_rwheel_crot,				&ConfIni_KRightWheelCRot,				sizeof(ConfIni_KRightWheelCRot));
+			::memcpy(&conf->k_swap_rwmotor,				&ConfIni_KSwapRightLehtMotor,				sizeof(ConfIni_KSwapRightLehtMotor));
 			::memcpy(&conf->tread,		&ConfIni_Tread,					sizeof(ConfIni_Tread));
 			::memcpy(&conf->count_rev,	&ConfIni_CountPerRevolution,	sizeof(ConfIni_CountPerRevolution));
 			::memcpy(&conf->gear,		&ConfIni_Gear,					sizeof(ConfIni_Gear));
@@ -217,6 +248,9 @@ namespace OdometryCorrector {
 			gnd::conf::get_parameter(src, &dest->radius_r);
 			gnd::conf::get_parameter(src, &dest->radius_l);
 			gnd::conf::get_parameter(src, &dest->tread);
+			gnd::conf::get_parameter(src, &dest->k_rwheel_crot);
+			gnd::conf::get_parameter(src, &dest->k_lwheel_crot);
+			gnd::conf::get_parameter(src, &dest->k_swap_rwmotor);
 			gnd::conf::get_parameter(src, &dest->count_rev);
 			gnd::conf::get_parameter(src, &dest->gear);
 			gnd::conf::get_parameter(src, &dest->wenc_name);
@@ -243,6 +277,9 @@ namespace OdometryCorrector {
 			gnd::conf::set_parameter(dest, &src->radius_r);
 			gnd::conf::set_parameter(dest, &src->radius_l);
 			gnd::conf::set_parameter(dest, &src->tread);
+			gnd::conf::set_parameter(dest, &src->k_rwheel_crot);
+			gnd::conf::set_parameter(dest, &src->k_lwheel_crot);
+			gnd::conf::set_parameter(dest, &src->k_swap_rwmotor);
 			gnd::conf::set_parameter(dest, &src->gear);
 			gnd::conf::set_parameter(dest, &src->count_rev);
 			gnd::conf::set_parameter(dest, &src->wenc_name);
